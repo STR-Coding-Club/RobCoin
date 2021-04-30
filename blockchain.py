@@ -78,7 +78,7 @@ class Blockchain(object):
         """
 
         """Difficulty N increases mining difficulty exponentially (2**N)"""
-        N = 255 # Difficulty, must be 1 <= N <= 255
+        N = 5  # Difficulty, must be 1 <= N <= 255
         guess = f'{last_hash.hex()}{proof}'
         guess_hash = hashlib.sha256(guess.encode()).hexdigest()
 
