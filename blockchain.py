@@ -1,5 +1,6 @@
 import hashlib
 import json
+import sys
 
 from time import time
 from uuid import uuid4
@@ -12,9 +13,23 @@ class Blockchain(object):
         # Returns the last (header) block in the chain
         return self.chain[-1]
 
-    def __init__(self):
+    @property
+    def blockchain(self):
+        return self.chain
+
+    def __init__(self, chain_file=''):
         self.chain = []
-        self.current_transactions = []      
+        self.current_transactions = []
+
+        # If chain already exists on disk
+        if chain_file:
+            try:
+                with open(chain_file, 'r') as blockchain_file:
+                    self.chain = json.loads(blockchain_file.read())
+                return
+            except (FileNotFoundError, json.JSONDecodeError):
+                print('Error while importing chain_file! Continuing anyways with an empty chain...', file=sys.stderr)
+
         # Genesis Block
         self.new_block(previous_hash=1, proof=100)
 
@@ -27,12 +42,14 @@ class Blockchain(object):
         """
         block = {
             'index': len(self.chain) + 1,
-            'nonce': time(),
+            'timestamp': time(),
             'transactions': self.current_transactions,
-            'proof': proof,
-            'previous_hash': previous_hash or hexlify(self.hash(self.last_block))
+            'previous_hash': previous_hash or hexlify(self.hash(self.last_block)),
         }
         self.current_transactions = []
+        # Reset the current list of transactions
+        self.current_transactions = []
+        block['proof'] = proof
         self.chain.append(block)
         return block
 
@@ -50,9 +67,10 @@ class Blockchain(object):
             {
                 'sender': sender,
                 'recipient': recipient,
-                'amount': amount
-            }
-        )
+                'amount': amount,
+            })
+
+        return self.last_block['index'] + 1
 
     @staticmethod
     def hash(block):
@@ -62,7 +80,7 @@ class Blockchain(object):
         :return: <bytes> hash of block
             - Returns block hash as bytes
         """
-        block_encoded = bytes(json.dumps(block, sort_keys=True).encode())
+        block_encoded = bytes(json.dumps(block, sort_keys=True).encode())  # Sorted to ensure consistent hashes
         return hashlib.sha256(block_encoded).digest()
 
     @staticmethod
@@ -78,10 +96,17 @@ class Blockchain(object):
         """
 
         """Difficulty N increases mining difficulty exponentially (2**N)"""
-        N = 5  # Difficulty, must be 1 <= N <= 255
-        guess = f'{last_hash.hex()}{proof}'
+        N = 5  # Difficulty (N >= 1)
+        guess = f'{last_hash.hex()}{proof}'  # Append proof to end of block hash
         guess_hash = hashlib.sha256(guess.encode()).hexdigest()
-
-        bin_guess_hash = f"{bin(int.from_bytes(unhexlify(guess_hash), byteorder='big'))}"[::-1]
-
+        bin_guess_hash = f"{bin(int.from_bytes(unhexlify(guess_hash), byteorder='big'))}"[::-1]  # Reverse binary string
+        if proof < 5:
+            print(f'proof={proof}: {bin_guess_hash}')
+            print(f'{last_hash.hex()}{proof}')
+        if bin_guess_hash[:N] == "0" * N:
+            print(f'proof={proof}: {bin_guess_hash}')
         return bin_guess_hash[:N] == "0" * N
+
+    def save_blockchain(self, file="blockchain.txt"):
+        with open('blockchain.txt', 'w') as out:
+            json.dump(self.chain, out)

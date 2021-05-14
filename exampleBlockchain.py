@@ -4,7 +4,8 @@ block1 = {  # type = Dict
     'transactions': [
         {
             'sender': "miner",
-            'recipient': "9f6cbc12b89b0eac7670acc753983f688067060e4d2f2dd218079973d39666e0",
+            'recipient': "2f4c0b13ad5b8a3dfc29ffbad1954f0cf098cc9ce769cfb8c7dc94dd474d1eb5",
+            # IMPORTANT! REPLACE HASH WITH HASH PRINTED IN CONSOLE BEFORE DOING THING
             'amount': 100,
         },
     ],
@@ -19,20 +20,30 @@ block2 = {
     'timestamp': 1504356437.53456,
     'transactions': [
         {
-            'sender': "9f6cbc12b89b0eac7670acc753983f688067060e4d2f2dd218079973d39666e0",
+            'sender': "2f4c0b13ad5b8a3dfc29ffbad1954f0cf098cc9ce769cfb8c7dc94dd474d1eb5",
+            'recipient': "7020f19f81a86ba882f3eb587a1608e6a9ddfd8c2a53037ec83db4d56bc83d8a",
+            'amount': 5,
+        },
+        {
+            'sender': "2f4c0b13ad5b8a3dfc29ffbad1954f0cf098cc9ce769cfb8c7dc94dd474d1eb5",
             'recipient': "5ac42b0b4704565d9b87651345eed5b04011915d135645ea4f856cd6f01808f9",
             'amount': 5,
         },
         {
-            'sender': "9f6cbc12b89b0eac7670acc753983f688067060e4d2f2dd218079973d39666e0",
+            'sender': "2f4c0b13ad5b8a3dfc29ffbad1954f0cf098cc9ce769cfb8c7dc94dd474d1eb5",
             'recipient': "e78bf12431c2cda9c7de4c4a608204193a25b99ce947f1f2be87e1118cee5e41",
             'amount': 5,
         },
         {
-            'sender': "9f6cbc12b89b0eac7670acc753983f688067060e4d2f2dd218079973d39666e0",
-            'recipient': "2cf24dba5fb0a30e26edfg3456tdfg343efsdf37425e73043362938b9824",
+            'sender': "2f4c0b13ad5b8a3dfc29ffbad1954f0cf098cc9ce769cfb8c7dc94dd474d1eb5",
+            'recipient': "34b72cce39da8440933a1e215d8b2bc2e0faa737c45dddba6076ccf59b8f9ab6",
             'amount': 5,
         },
+        {
+            'sender': "2f4c0b13ad5b8a3dfc29ffbad1954f0cf098cc9ce769cfb8c7dc94dd474d1eb5",
+            'recipient': "625e853783a41401de7df94f3c911b6ee3b2e19c27018f40d8cc9a7a43891e19",
+            'amount': 5,
+        }
     ],
 
     'proof': 345345435345345,  # Proof is some int that 'solves' the block - Proof of Work (POW)
@@ -51,5 +62,6 @@ block2 = {
 block_list = [block1, block2]
 
 
-def get_blockchain():
+def blockchain():
     return block_list
+

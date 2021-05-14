@@ -1,13 +1,17 @@
-from exampleBlockchain import get_blockchain
+from exampleBlockchain import blockchain
+
+from base64 import b64encode
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 import hashlib
-import os
+from os import path
 from random import random
+import requests
 
+blockchain = blockchain()
 
-blockchain = get_blockchain()
+NODE = "http://localhost:5000"
 
 
 def generate_key():
@@ -19,24 +23,13 @@ def generate_key():
     save_key(private_key)
 
 
-def save_key(private_key):
-    # Takes in private_key and stores it on disk
-    pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption()
-    )
-
-    with open("private_key.pem", "wb") as f:
-        f.write(pem)
-
-
 def read_key():
+    # Reads private key from "private_key.pem"
     with open("private_key.pem", "rb") as key_file:
         private_key = serialization.load_pem_private_key(
             key_file.read(),
             password=None,
-            backend=default_backend(),
+            backend=default_backend()
         )
     return private_key
 
@@ -49,21 +42,36 @@ def get_address():
     address = hashlib.sha256(str(get_public_key(read_key()).public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )).encode()).hexdigest()
+    )).encode()).hexdigest()
     return address
+
+
+def save_key(private_key):
+    # Takes in private_key param and stores it in "private_key.pem"
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    with open('private_key.pem', 'wb') as f:
+        f.write(pem)
 
 
 def send(receiver, amount, private_key):
     """
+    EXAMPLE:
 
-    RECEIVER:AMOUNT:NONCE
-    :param receiver: <str> SHA-256 hash of someone else's public key
-    :param amount: <int> # robcoin
-    :param private_key: <bytes>
+    SENDER:RECEIVER:AMOUNT:NONCE
 
+    Sender
+    Receiver
+    Amount
+    Nonce
     """
     nonce = random()
-    packet = f'{receiver}:{amount}:{nonce}'
+    packet = f'{get_address()}:{receiver}:{amount}:{nonce}'
+
     bytes_package = packet.encode()
 
     signature = private_key.sign(
@@ -74,29 +82,44 @@ def send(receiver, amount, private_key):
         ),
         hashes.SHA256()
     )
-    print(packet)
+
+    requests.post(NODE + "/transactions/new",
+                  data={
+                      "transaction": packet,
+                      "signature": b64encode(signature),
+                      "pubkey": get_public_key(private_key).public_bytes(
+                          serialization.Encoding.PEM,
+                          serialization.PublicFormat.SubjectPublicKeyInfo) \
+                  .decode("utf-8")
+                  }
+                  )
+
+
+def get_balance():
+    balance = 0
+    # Print balance of private key holder
+    for block in blockchain:
+        for transaction in block["transactions"]:
+            if transaction["recipient"] == get_address():
+                balance += transaction["amount"]
+            elif transaction["sender"] == get_address():
+                balance -= transaction["amount"]
+    return balance
 
 
 if __name__ == "__main__":
     # If private key is detected
-    if os.path.exists("private_key.pem"):
-        print("Private key is detected!")
+    if path.exists("private_key.pem"):
+        print("Private key detected!")
         print(get_address())
 
-        # Get balance of address
-        balance = 0
+        print(f"Your current balance is: {get_balance()}")
 
-        for block in blockchain:
-            for transaction in block['transactions']:
-                if transaction['recipient'] == get_address():
-                    balance += transaction['amount']
-                elif transaction['sender'] == get_address():
-                    balance -= transaction["amount"]
-
-        print(f'Your current balance is: {balance}')
+    # If private key is not detected
     else:
         print("No private key detected, creating private key now...")
         generate_key()
-        print('Private key has been saved as "private_key.pem". DO NOT share this key with ANYONE!')
+        print("Private key has been saved as \' private_key.pem \' DO NOT share this key with anyone")
 
-    send("Dhyey", 10, read_key())
+    # See what a packet looks like
+    send("Dhyey", "10", read_key())  # Also prints it in the function
