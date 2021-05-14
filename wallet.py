@@ -83,16 +83,15 @@ def send(receiver, amount, private_key):
         hashes.SHA256()
     )
 
-    requests.post(NODE + "/transactions/new",
-                  data={
-                      "transaction": packet,
-                      "signature": b64encode(signature),
-                      "pubkey": get_public_key(private_key).public_bytes(
-                          serialization.Encoding.PEM,
-                          serialization.PublicFormat.SubjectPublicKeyInfo) \
-                  .decode("utf-8")
-                  }
-                  )
+    response = requests.post(NODE + "/transactions/new",
+                    data={
+                        "transaction": packet,
+                        "signature": b64encode(signature),
+                        "pubkey": get_public_key(private_key).public_bytes(
+                            serialization.Encoding.PEM,
+                            serialization.PublicFormat.SubjectPublicKeyInfo).decode("utf-8")
+                    }
+                )
 
 
 def get_balance():
@@ -121,5 +120,5 @@ if __name__ == "__main__":
         generate_key()
         print("Private key has been saved as \' private_key.pem \' DO NOT share this key with anyone")
 
-    # See what a packet looks like
-    send("Dhyey", "10", read_key())  # Also prints it in the function
+    # Send Example Packet from local to the node
+    send("Dhyey", "10", read_key())  # read_key() prints the public key

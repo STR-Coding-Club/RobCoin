@@ -1,14 +1,14 @@
-import hashlib
-import json
-import sys
+# import hashlib
+# import json
+# import sys
 
-from time import time
+# from time import time
 from uuid import uuid4
 
 import blockchain
-import cryptography
+# import cryptography
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives.asymmetric import padding #, rsa
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.exceptions import InvalidSignature
 from flask import Flask, request, jsonify
@@ -70,7 +70,7 @@ def mine():
     # return "Block has been sent to mine!"
 
 
-@app.route('/submitProof', methods=['POST'])
+@app.route('/submitproof', methods=['POST'])
 def submit_proof():
     # Listen for submissions of proofs
     # Check if proof is valid
@@ -80,7 +80,7 @@ def submit_proof():
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
-    print(request.form)
+    # print(request.form)
     required = ['transaction', 'signature', 'pubkey']
     if not all(p in request.form for p in required):
         return 'Missing required transaction data', 400  # Bad request
