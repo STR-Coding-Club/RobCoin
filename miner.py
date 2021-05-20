@@ -2,12 +2,15 @@ import blockchain
 import crypto
 import random
 import requests
-from time import sleep
+from time import sleep, time
+from numpy import average
 
 NODE = "http://localhost:5000"
 
 with open("miner_address.txt", "r") as address:
     mining_address = address.read()
+
+hash_per_second = []
 
 
 class Miner(object):
@@ -31,9 +34,15 @@ class Miner(object):
         :return: <int> p'
         """
 
+        guesses = 0
         proof = 0
+        start = time()
         while not crypto.valid_proof(block, proof):
             proof = random.getrandbits(256)
+            guesses += 1
+        end = time()
+        hash_per_second.append(guesses / (end - start))
+        print(f'Hashrate: {average(hash_per_second) / 1000:.2f} KH/s')
         return proof
 
     def mine(self):
@@ -42,8 +51,10 @@ class Miner(object):
                 sleep(2)
             response = requests.get(NODE + "/work")
             proof = self.proof_of_work(response.json())
+            print(f'Proof found: {proof}')
+            print('Sending now to node...')
+            print()
             headers = {'User-Agent': 'Mozilla/5.0'}
-            print(type(proof))
             requests.post(NODE + "/submitproof", headers=headers, data={
                 "proof": proof,
                 "miner": mining_address
