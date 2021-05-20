@@ -1,18 +1,15 @@
-# import hashlib
-# import json
-# import sys
-
-# from time import time
 from uuid import uuid4
 
 import blockchain
+
 # import cryptography
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding #, rsa
+from cryptography.hazmat.primitives.asymmetric import padding  # rsa
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.exceptions import InvalidSignature
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from base64 import b64decode
+import crypto
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -22,7 +19,7 @@ current_chain = blockchain.Blockchain("blockchain.txt")
 node_identifier = str(uuid4()).replace('-', '')
 
 
-def verifySignature(signature, packet, pubKeySerialized):
+def verifySignature(signature, packet, pubKeySerialized) -> bool:
     # TODO storage of addresses and public keys
     # Takes in signature, public key and packet and returns true if it is a valid transaction
     try:
@@ -39,7 +36,6 @@ def verifySignature(signature, packet, pubKeySerialized):
         )
     except InvalidSignature:
         return False
-
     return True
 
 
@@ -61,21 +57,46 @@ def parse_blockchain():
                     "amount"]  # Will not return negative - checked already
 
 
-@app.route('/mine', methods=['GET'])
-def mine():
-    pass
-    # After set interval send out block to mine
-    # Send collected transactions to miners to mine
-    # Clear current transaction list
-    # return "Block has been sent to mine!"
-
-
 @app.route('/submitproof', methods=['POST'])
 def submit_proof():
     # Listen for submissions of proofs
     # Check if proof is valid
     #   If valid --> append block to blockchain, add miner reward to current transactions
-    pass
+
+    required = ['miner', 'proof']
+    if not all(p in request.form for p in required):
+        return 'Missing required transaction data', 400  # Bad request
+    block = {
+        'index': len(current_chain.chain) + 1,
+        'transactions': current_chain.current_transactions,
+        'previous_hash': crypto.hash(current_chain.last_block)
+    }
+
+    valid = crypto.valid_proof(block, int(request.form['proof']), True)
+    # We must receive a reward for finding the proof.
+    # The sender is "0" to signify that this node has mined a new coin.
+    # Miner reward
+    REWARD: int = 1
+    if valid:
+
+        # Add mined block to chain
+        block = current_chain.new_block(request.form['proof'])
+        response = {
+            'message': f"New Block Mined, {REWARD} $TR has been added to your account",
+            'index': block['index'],
+            'transactions': block['transactions'],
+            'proof': block['proof'],
+            'previous_hash': block['previous_hash'],
+        }
+        current_chain.new_transaction(
+            sender="0",
+            recipient=request.form['miner'],  # Send to miner who submitted proof
+            amount=REWARD,
+        )
+        print(response)
+        return response, 200
+    else:
+        return "Invalid proof", 401
 
 
 @app.route('/transactions/new', methods=['POST'])
@@ -98,11 +119,34 @@ def new_transaction():
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
+    """
+    :return: Returns entire blockchain in memory (current_chain.blockchain)
+    """
     response = {
         'chain': current_chain.blockchain,
         'length': len(current_chain.blockchain),
     }
-    return jsonify(response), 200
+    return response, 200
+
+
+@app.route('/work', methods=['GET'])
+def broadcast_work():
+    """
+    sends block to be mined
+        incoming transactions coming after block to be mined still is being mined will be added to pending_transactions
+        After set time interval, if no block has been mined (blockchain size has not increased), pending_transactions is
+            appended to next block to be broadcasted
+    """
+    if current_chain.ready_to_push:
+        current_chain.push_pending()
+    if not current_chain.ready_to_mine():
+        return "", 204
+    response = {
+        'index': len(current_chain.chain) + 1,
+        'transactions': current_chain.current_transactions,
+        'previous_hash': crypto.hash(current_chain.last_block)
+    }
+    return response, 200
 
 
 if __name__ == '__main__':

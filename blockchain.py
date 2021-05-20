@@ -18,7 +18,10 @@ class Blockchain(object):
 
     def __init__(self, chain_file):
         self.chain = []
+        self.pending_transactions = []
         self.current_transactions = []
+        self.push_time = 0
+        self.mine_time = 0
         # If chain already exists on disk
         if chain_file:
             try:
@@ -43,11 +46,19 @@ class Blockchain(object):
         :param previous_hash: <str> hash of current header block
         :return: <dict> new block
         """
+        print(self.chain)
         block = {
             'index': len(self.chain) + 1,
             'transactions': self.current_transactions,
             'previous_hash': hash(self.last_block)
         }
+        self.current_transactions = []
+        # Reset the current list of transactions
+        block['proof'] = proof
+        self.chain.append(block)
+        self.save_blockchain()
+        self.push_time = time()
+        self.mine_time = time()
         return block
 
     def new_transaction(self, sender, recipient, amount):
@@ -75,3 +86,14 @@ class Blockchain(object):
         """
         with open('blockchain.txt', 'w', encoding='utf-8') as out:
             json.dump(self.chain, out, ensure_ascii=False, indent=4)  # Padding to make json look pretty
+
+    def ready_to_push(self) -> bool:
+        return (time() - self.push_time) >= 10 # seconds
+
+    def ready_to_mine(self) -> bool:
+        return (time() - self.mine_time) >= 10
+
+    def push_pending(self) -> list:
+        self.current_transactions += self.pending_transactions
+        self.pending_transactions = []
+        self.push_time = time()
