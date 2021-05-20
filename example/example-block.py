@@ -1,6 +1,5 @@
 block = {  # type = Dict
     'index': 1,
-    'timestamp': 1506057125.900785,
     'transactions': [
         {
             'sender': "8527147fe1f5426f9dd545de4b27ee00",
@@ -27,6 +26,3 @@ block = {  # type = Dict
         #  specific transactions from a block are retrieved using their index in the list.
             #  eg. block['transactions'][0] returns info from the first transaction as dict.
 """
-
-print(block['proof'])
-print(block['transactions'][0]['sender'])
