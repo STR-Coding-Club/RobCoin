@@ -23,21 +23,19 @@ class Blockchain(object):
         self.push_time = 0
         self.mine_time = 0
         # If chain already exists on disk
-        if chain_file:
-            try:
-                with open(chain_file, 'r') as blockchain_file:
-                    self.chain = json.loads(blockchain_file.read())
-                return None
-            except (FileNotFoundError, json.JSONDecodeError):
-                print('Error while importing chain_file! Creating temporary test chain', file=sys.stderr)
-                """
-                Create Testchain with default Genesis Block
-                THIS SHOULD NEVER BE CALLED!!
-                    - When rolled out, this functions should instead call for a sync with the node to import the live
-                        chain
-                """
-
-                self.new_block(previous_hash=1, proof=100)
+        try:
+            with open(chain_file, 'r') as blockchain_file:
+                self.chain = json.loads(blockchain_file.read())
+            return None
+        except (FileNotFoundError, json.JSONDecodeError):
+            print('Error while importing chain_file! Creating temporary test chain', file=sys.stderr)
+            """
+            Create Testchain with default Genesis Block
+            THIS SHOULD NEVER BE CALLED!!
+                - When rolled out, this functions should instead call for a sync with the node to import the live
+                    chain
+            """
+            self.new_block(previous_hash=1, proof=100)
 
     def new_block(self, proof, previous_hash=None) -> dict:
         """
@@ -46,11 +44,10 @@ class Blockchain(object):
         :param previous_hash: <str> hash of current header block
         :return: <dict> new block
         """
-        print(self.chain)
         block = {
             'index': len(self.chain) + 1,
             'transactions': self.current_transactions,
-            'previous_hash': hash(self.last_block)
+            'previous_hash': previous_hash or hash(self.last_block)
         }
         self.current_transactions = []
         # Reset the current list of transactions
@@ -84,11 +81,11 @@ class Blockchain(object):
         """
         :param file: saves blockchain to 'blockchain.txt' in case node goes down
         """
-        with open('blockchain.txt', 'w', encoding='utf-8') as out:
+        with open(file, 'w+', encoding='utf-8') as out:
             json.dump(self.chain, out, ensure_ascii=False, indent=4)  # Padding to make json look pretty
 
     def ready_to_push(self) -> bool:
-        return (time() - self.push_time) >= 10 # seconds
+        return (time() - self.push_time) >= 10  # seconds
 
     def ready_to_mine(self) -> bool:
         return (time() - self.mine_time) >= 10
