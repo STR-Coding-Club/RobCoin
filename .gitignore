@@ -4,3 +4,4 @@
 __pycache__/
 
 private_key.pem
+*.txt
