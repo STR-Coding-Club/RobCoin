@@ -10,6 +10,7 @@ from cryptography.exceptions import InvalidSignature
 from flask import Flask, request
 from base64 import b64decode
 import crypto
+import wallet
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -20,7 +21,6 @@ node_identifier = str(uuid4()).replace('-', '')
 
 
 def verifySignature(signature, packet, pubKeySerialized) -> bool:
-    # TODO storage of addresses and public keys
     # Takes in signature, public key and packet and returns true if it is a valid transaction
     try:
         BytesPackage = packet.encode()
@@ -61,11 +61,12 @@ def parse_blockchain():
 def submit_proof():
     # Listen for submissions of proofs
     # Check if proof is valid
-    #   If valid --> append block to blockchain, add miner reward to current transactions
-
+    # If valid --> append block to blockchain, add miner reward to current transactions
     required = ['miner', 'proof']
     if not all(p in request.form for p in required):
         return 'Missing required transaction data', 400  # Bad request
+    if current_chain.ready_to_mine():
+        return 'No block ready to mine!', 401    
     block = {
         'index': len(current_chain.chain) + 1,
         'transactions': current_chain.current_transactions,
@@ -110,9 +111,15 @@ def new_transaction():
     sender = request.form['transaction'].split(':')[0]
     recipient = request.form['transaction'].split(':')[1]
     amount = float(request.form['transaction'].split(':')[2])
-    valid = verifySignature(b64decode(request.form['signature']), request.form['transaction'], request.form['pubkey'])
-    if not valid:
+    current_balance = float(current_chain.current_balances[sender]) if sender in current_chain.current_balances.keys() else 0 
+    pending_balance = float(current_chain.pending_balances[sender]) if sender in current_chain.pending_balances.keys() else 0 
+    
+    validSignature: bool = verifySignature(b64decode(request.form['signature']), request.form['transaction'], request.form['pubkey']) 
+    validBalance: bool = wallet.get_balance(wallet.get_address())[0] >= (amount + pending_balance + current_balance)  
+    if not validSignature:
         return "Invalid signature", 401  # Unauthorized
+    if not validBalance: 
+        return "Insufficient funds", 401 # Unauthorized
     index = current_chain.new_transaction(sender, recipient, amount)
     return "Success", 201  # Created
 
@@ -145,6 +152,22 @@ def broadcast_work():
         'index': len(current_chain.chain) + 1,
         'transactions': current_chain.current_transactions,
         'previous_hash': crypto.hash(current_chain.last_block)
+    }
+    return response, 200
+
+
+@app.route('/pendingbalance', methods=['POST'])
+def get_pending_balance(): 
+    required = ['address']
+    balance = 0
+    if not all(p in request.form for p in required):
+        return 'Missing address for request', 400  # Bad request
+    if request.form['address'] in current_chain.pending_balances:
+        balance = current_chain.pending_balances[request.form['address']]
+    if request.form['address'] in current_chain.current_balances:
+        balance += current_chain.current_balances[request.form['address']]
+    response = {
+        'pending': balance
     }
     return response, 200
 
