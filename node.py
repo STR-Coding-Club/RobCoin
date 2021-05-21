@@ -65,8 +65,8 @@ def submit_proof():
     required = ['miner', 'proof']
     if not all(p in request.form for p in required):
         return 'Missing required transaction data', 400  # Bad request
-    if current_chain.ready_to_mine():
-        return 'No block ready to mine!', 401    
+    if not current_chain.ready_to_mine():
+        return 'No block ready to mine!', 425    
     block = {
         'index': len(current_chain.chain) + 1,
         'transactions': current_chain.current_transactions,
@@ -97,7 +97,7 @@ def submit_proof():
         print(response)
         return response, 200
     else:
-        return "Invalid proof", 401
+        return "Invalid proof", 406
 
 
 @app.route('/transactions/new', methods=['POST'])
