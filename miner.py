@@ -12,7 +12,7 @@ try:
     with open("miner_address.txt", "r") as address:
         mining_address = address.read()
 except FileNotFoundError:
-    print("'miner_address.txt' not detected! Run 'run_wallet.py' first!", file=sys.stderr)
+    print("'miner_address.txt' not detected! Run 'wallet.py' first!", file=sys.stderr)
     sys.exit(0)
 
 hash_per_second = []

@@ -1,9 +1,9 @@
-
 from base64 import b64encode
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 import hashlib
+from os import path
 from random import random
 import requests
 import sys
@@ -70,8 +70,7 @@ def send(receiver, amount, private_key):
     Amount
     Nonce
     """
-    
-    can_afford: bool = float(amount) <= float(get_balance()[0])
+    can_afford: bool = float(amount) <= float(update_balance())
     if can_afford:
         nonce = random()
         packet = f'{get_address()}:{receiver}:{amount}:{nonce}'
@@ -98,32 +97,41 @@ def send(receiver, amount, private_key):
                                  )
     else:
         print(f'Error while sending transaction! - You cannot afford to send {amount} $TR. Try lowering the amount', file=sys.stderr)
-    print(response.status_code)
-    return response.status_code  < 400
 
 
-def get_balance(address=None):
-    if not address:
-        address = get_address()
-    response_chain = requests.get(NODE + "/chain")
-    response_pending = requests.post(NODE + "/pendingbalance",
-                                 data={
-                                     "address": address
-                                 })
-    chain = response_chain.json()
-    pending = response_pending.json()["pending"]
+def update_balance():
+    response = requests.get(NODE + "/chain")
+    chain = response.json()
     balance = 0
-    exists = pending > 0
     for block in chain['chain']:
-        for transaction in block["transactions"]:     
-            if transaction["recipient"] == address:
-                exists = True
+        for transaction in block["transactions"]:
+            if transaction["recipient"] == get_address():
                 balance += transaction["amount"]
-            elif transaction["sender"] == address:
-                exists = True
+            elif transaction["sender"] == get_address():
                 balance -= transaction["amount"]
+    return balance
 
-    if exists:
-        return [balance, pending]
+
+if __name__ == "__main__":
+    # If private key is detected
+    if path.exists("private_key.pem"):
+        print("Private key detected!")
+        print(get_address())
+
+    # If private key is not detected
     else:
-        return False
+        print("No private key detected, creating private key now...")
+        generate_key()
+        print("Private key has been saved as \' private_key.pem \' DO NOT share this key with anyone")
+
+    if path.exists("miner_address.txt"):
+        print("Miner address detected!")
+    else:
+        print("No Miner address detected, generating one now...")
+        save_address()
+
+    # Send packets here // TODO: Add async support
+
+
+    while True:
+        print(f"Your current balance is: {update_balance()}")

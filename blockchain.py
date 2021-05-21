@@ -15,13 +15,11 @@ class Blockchain(object):
     @property
     def blockchain(self) -> list:
         return self.chain
-    
+
     def __init__(self, chain_file):
         self.chain = []
         self.pending_transactions = []
         self.current_transactions = []
-        self.pending_balances = {}
-        self.current_balances = {}
         self.push_time = 0
         self.mine_time = 0
         # If chain already exists on disk
@@ -58,7 +56,6 @@ class Blockchain(object):
         self.save_blockchain()
         self.push_time = time()
         self.mine_time = time()
-        self.current_balances = {}
         return block
 
     def new_transaction(self, sender, recipient, amount):
@@ -77,11 +74,7 @@ class Blockchain(object):
                 'recipient': recipient,
                 'amount': amount,
             })
-        if sender not in self.pending_balances:
-            self.pending_balances[sender] = amount
-        else:
-            self.pending_balances[sender] += amount
-        
+
         return self.last_block['index'] + 1
 
     def save_blockchain(self, file="blockchain.txt"):
@@ -101,9 +94,3 @@ class Blockchain(object):
         self.current_transactions += self.pending_transactions
         self.pending_transactions = []
         self.push_time = time()
-        for sender in self.pending_balances.keys():
-            if sender not in self.current_balances:
-                self.current_balances[sender] = self.pending_balances
-            else:
-                self.current_balances[sender] += self.pending_balances
-        self.pending_balances = {}
