@@ -98,6 +98,7 @@ def send(receiver, amount, private_key):
                                  )
     else:
         print(f'Error while sending transaction! - You cannot afford to send {amount} $TR. Try lowering the amount', file=sys.stderr)
+        return False
     print(response.status_code)
     return response.status_code  < 400
 
