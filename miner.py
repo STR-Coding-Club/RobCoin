@@ -6,7 +6,7 @@ from time import sleep, time
 from numpy import average
 import sys
 
-NODE = "http://localhost:5000"
+NODE = "http://robcoin.strcoding.club:5000"
 
 try:
     with open("miner_address.txt", "r") as address:
@@ -27,7 +27,7 @@ class Miner(object):
         return chain
 
     def __init__(self):
-        pass
+        print('Miner initialized!')
 
     def proof_of_work(self, block) -> int:
         """
@@ -58,7 +58,12 @@ class Miner(object):
             proof = self.proof_of_work(response.json())
             print(f'Proof found: {proof}')
             print('Sending now to node...')
-            print()
+            if requests.get(NODE + "/work").status_code == 200:  # worked
+                print('Success! You have been rewarded with 1 $TR (to be added in next block)')
+                print()
+            else:
+                print('Error! Did not send block in on-time!')
+                print()
             headers = {'User-Agent': 'Mozilla/5.0'}
             requests.post(NODE + "/submitproof", headers=headers, data={
                 "proof": proof,

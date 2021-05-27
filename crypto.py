@@ -26,7 +26,7 @@ def valid_proof(block, proof, node=False) -> bool:
     """
 
     """Difficulty N increases mining difficulty exponentially (2**N)"""
-    N: int = 16  # Difficulty (N >= 1)
+    N: int = 20  # Difficulty (N >= 1)
 
     block['proof'] = proof
     guess = block

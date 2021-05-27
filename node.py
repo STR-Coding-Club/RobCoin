@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import blockchain
 
-#import cryptography
+# import cryptography
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding  # rsa
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
@@ -66,7 +66,7 @@ def submit_proof():
     if not all(p in request.form for p in required):
         return 'Missing required transaction data', 400  # Bad request
     if not current_chain.ready_to_mine():
-        return 'No block ready to mine!', 425    
+        return 'No block ready to mine!', 400    # Bad Request
     block = {
         'index': len(current_chain.chain) + 1,
         'transactions': current_chain.current_transactions,
@@ -94,7 +94,10 @@ def submit_proof():
             recipient=request.form['miner'],  # Send to miner who submitted proof
             amount=REWARD,
         )
-        print(response)
+        print()
+        for key in response:
+            print(f'{key}: {response[key]}')
+        print()
         return response, 200
     else:
         return "Invalid proof", 406
@@ -102,7 +105,6 @@ def submit_proof():
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
-    # print(request.form)
     required = ['transaction', 'signature', 'pubkey']
     if not all(p in request.form for p in required):
         return 'Missing required transaction data', 400  # Bad request
@@ -115,7 +117,7 @@ def new_transaction():
     pending_balance = float(current_chain.pending_balances[sender]) if sender in current_chain.pending_balances.keys() else 0 
     
     validSignature: bool = verifySignature(b64decode(request.form['signature']), request.form['transaction'], request.form['pubkey']) 
-    validBalance: bool = wallet.get_balance(wallet.get_address())[0] >= (amount + pending_balance + current_balance)  
+    validBalance: bool = wallet.get_balance(sender)[0] >= (amount + pending_balance + current_balance)  
     if not validSignature:
         return "Invalid signature", 401  # Unauthorized
     if not validBalance: 

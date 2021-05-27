@@ -7,7 +7,7 @@ import hashlib
 from random import random
 import requests
 import sys
-NODE = "http://localhost:5000"
+NODE = "http://robcoin.strcoding.club:5000"
 
 
 def generate_key():
@@ -123,8 +123,7 @@ def get_balance(address=None):
             elif transaction["sender"] == address:
                 exists = True
                 balance -= transaction["amount"]
-
     if exists:
         return [balance, pending]
     else:
-        return False
+        return ["Address Not found",""]
