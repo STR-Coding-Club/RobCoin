@@ -1,6 +1,28 @@
-from uuid import uuid4
+"""
+MIT License
 
-import blockchain
+Copyright (c) 2021 STR-Coding-Club
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
+from uuid import uuid4
 
 # import cryptography
 from cryptography.hazmat.primitives import hashes
@@ -9,8 +31,11 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.exceptions import InvalidSignature
 from flask import Flask, request
 from base64 import b64decode
+
+import blockchain
 import crypto
 import wallet
+
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -113,7 +138,7 @@ def new_transaction():
     sender = request.form['transaction'].split(':')[0]
     recipient = request.form['transaction'].split(':')[1]
     amount = float(request.form['transaction'].split(':')[2])
-    current_balance = float(current_chain.current_balances[sender]) if sender in current_chain.current_balances.keys() else 0 
+    current_balance = float(current_chain.current_balances[sender]) if sender in current_chain.current_balances.keys() else 0
     pending_balance = float(current_chain.pending_balances[sender]) if sender in current_chain.pending_balances.keys() else 0 
     
     validSignature: bool = verifySignature(b64decode(request.form['signature']), request.form['transaction'], request.form['pubkey']) 

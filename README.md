@@ -66,6 +66,8 @@ Developed by St. Robert CHS' Coding Club in 2021, RobCoin (Symbol: $TR) is a pro
 
 ### DISCLAIMER
 
+This project is an independent project pursued by St. Robert Catholic High School's Coding Club. This project is not affiliated, sponsored, or supported by St. Robert Catholic High School or the York Catholic District School Board. St. Robert Catholic High School's Coding Club is not liable for any loss or damage of whatever nature (direct, indirect, consequential, or other) that may be incurred through the use of the project. 
+
 AS A PROJECT DESIGNED AROUND EDUCATION, ROBCOIN HAS NO MONETARY VALUE. THE USE OF THIS COIN SHOULD ONLY BE FOR EDUCATIVE/EXPLORATORY PURPOSES. ST. ROBERT CHS CODING CLUB HIGHLY DISCOURAGES THE USE OF ROBCOIN AS A MEDIUM OF TRANSACTION FOR MATTERS SUCH AS, BUT NOT LIMITED TO: (1)TRANSACTIONS OF MONETARY VALUE, (2)EXCHANGE FOR SERVICES AND/OR GOODS, (3)ILLEGAL/ILLICIT ACTIVITIES. ANY EVIDENCE OF SUCH ACTION WILL BE REPRIMANDED. ROBCOIN'S SOURCE CODE IS DISTRIBUTED UNDER THE MIT LICENSE. SEE `LICENSE` FOR MORE INFORMATION.
 
 ### Built With
