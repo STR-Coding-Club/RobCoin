@@ -62,7 +62,7 @@ else:
 def command_error():
     print("Command error, listing available commands")
     print()
-    print('\t> send <receiver>, <amount>')
+    print('\t> send <receiver> <amount>')
     print()
     print('\t> balance [optional: address]')
     print()
