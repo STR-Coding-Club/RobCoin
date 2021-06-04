@@ -24,21 +24,9 @@ SOFTWARE.
 
 import wallet
 from os import path
+from print_welcome import print_welcome
 
-print("***********************************************")
-print("""  _____       _      _____      _       
- |  __ \     | |    / ____|    (_)      
- | |__) |___ | |__ | |     ___  _ _ __  
- |  _  // _ \| '_ \| |    / _ \| | '_ \ 
- | | \ \ (_) | |_) | |___| (_) | | | | |
- |_|  \_\___/|_.__/ \_____\___/|_|_| |_|""")
-
-print()
-print("***********************************************")
-
-print("Copyright (c) 2021 STR-Coding-Club")
-print('View the docs: https://github.com/STR-Coding-Club/RobCoin')
-print()
+print_welcome()
 
 print('Looking for Private Key...')
 print()
@@ -68,7 +56,7 @@ def command_error():
     print()
     print('\t> address')
     print()
-    
+
 print()
 print('Wallet initialized!')
 print()
@@ -82,7 +70,7 @@ while True:
             if len(command) == 3:
                 receiver = command[1]
                 amount = command[2]
-                sent = wallet.send(receiver, amount, wallet.read_key()) 
+                sent = wallet.send(receiver, amount, wallet.read_key())
                 if sent:
                     print(f"Sent {amount} to {receiver}")
                     print(f"Your current balance is: {wallet.get_balance()[0]} (Pending: {wallet.get_balance()[1]})")
